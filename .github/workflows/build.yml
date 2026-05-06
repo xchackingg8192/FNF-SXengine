@@ -1,0 +1,54 @@
+name: Build SXEngine
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.3.3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvlc-dev libvlccore-dev
+
+      - name: Setup Haxelib
+        run: |
+          haxelib setup ~/haxelib
+          haxelib install lime
+          haxelib install openfl
+          haxelib install flixel
+          haxelib install flixel-tools
+          haxelib install flixel-addons
+          haxelib install flixel-ui
+          haxelib install hxcpp
+          haxelib install tjson
+          haxelib install hxCodec || true
+
+      - name: Install Psych dependencies
+        run: |
+          haxelib git flixel https://github.com/HaxeFlixel/flixel.git
+          haxelib git flixel-addons https://github.com/HaxeFlixel/flixel-addons.git
+          haxelib git flixel-ui https://github.com/HaxeFlixel/flixel-ui.git
+          haxelib git lime https://github.com/openfl/lime.git
+          haxelib git openfl https://github.com/openfl/openfl.git
+
+      - name: Build game (Windows)
+        run: |
+          haxelib run lime build windows
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: SXEngine-BUILD
+          path: export/windows/bin
