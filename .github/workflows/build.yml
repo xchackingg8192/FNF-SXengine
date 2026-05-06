@@ -17,11 +17,29 @@ jobs:
         with:
           haxe-version: 4.3.3
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+
+          # AUDIO (fix tes erreurs)
+          sudo apt-get install -y libasound2-dev libpulse-dev libopenal-dev
+
+          # GRAPHICS + SDL
+          sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libglu1-mesa-dev
+
+          # IMAGE / FONT / ETC
+          sudo apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev
+
+          # UTILS
+          sudo apt-get install -y libmbedtls-dev libuv1-dev libsqlite3-dev git
+
       - name: Setup Haxelib
         run: |
+          mkdir ~/haxelib
           haxelib setup ~/haxelib
+          haxelib update
 
-      - name: Install FULL dependencies (IMPORTANT)
+      - name: Install Haxe libs
         run: |
           haxelib install lime
           haxelib install openfl
@@ -29,30 +47,20 @@ jobs:
           haxelib install flixel-addons
           haxelib install flixel-ui
           haxelib install hxcpp
-          haxelib install tjson
           haxelib install format
           haxelib install hxp
-          haxelib install actuate
-          haxelib install svg
-          haxelib install mcover || true
+          haxelib install tjson
 
-      - name: Git dependencies (engine core)
+      - name: Setup Lime/OpenFL
         run: |
-          haxelib git flixel https://github.com/HaxeFlixel/flixel.git
-          haxelib git flixel-addons https://github.com/HaxeFlixel/flixel-addons.git
-          haxelib git flixel-ui https://github.com/HaxeFlixel/flixel-ui.git
-          haxelib git lime https://github.com/openfl/lime.git
-          haxelib git openfl https://github.com/openfl/openfl.git
-
-      - name: Optional codec support
-        run: |
-          haxelib install hxCodec || true
+          haxelib run lime setup
+          haxelib run lime rebuild windows
 
       - name: Build Windows
         run: |
           haxelib run lime build windows -release
 
-      - name: Upload artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: SXEngine-Windows
