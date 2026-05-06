@@ -1,1 +1,65 @@
+name: Build SXEngine (Windows)
 
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.3.3
+
+      - name: Setup haxelib
+        run: |
+          mkdir -p ~/haxelib
+          haxelib setup ~/haxelib
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libasound2-dev \
+            libpulse-dev \
+            libopenal-dev \
+            libvlc-dev libvlccore-dev \
+            libcurl4-openssl-dev \
+            git
+
+      - name: Fix haxelib
+        run: |
+          haxelib fixrepo
+
+      - name: Install libs
+        run: |
+          haxelib install lime
+          haxelib install openfl
+          haxelib install flixel
+          haxelib install flixel-addons
+          haxelib install flixel-ui
+          haxelib install hxcpp
+          haxelib install format
+          haxelib install hxp
+          haxelib install tjson
+
+      - name: Setup Lime
+        run: |
+          haxelib run lime setup
+
+      - name: Build Windows
+        run: |
+          haxelib run lime build windows -release -Dnoaudio
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: SXEngine-Windows
+          path: export/release/windows/bin
