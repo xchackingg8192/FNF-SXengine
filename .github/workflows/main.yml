@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-windows:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repo
@@ -19,9 +19,18 @@ jobs:
 
       - name: Setup Haxelib
         run: |
-          haxelib setup ~/haxelib
+          haxelib setup C:\haxelib
 
-      - name: Install core dependencies
+      # ⚡ Cache pour accélérer les builds suivants
+      - name: Cache haxelib
+        uses: actions/cache@v4
+        with:
+          path: C:\haxelib
+          key: haxelib-${{ runner.os }}-${{ hashFiles('**/hmm.json') }}
+          restore-keys: |
+            haxelib-${{ runner.os }}
+
+      - name: Install libraries
         run: |
           haxelib install lime
           haxelib install openfl
@@ -29,32 +38,21 @@ jobs:
           haxelib install flixel-addons
           haxelib install flixel-ui
           haxelib install hxcpp
-          haxelib install tjson
-
-      - name: Install required missing libs
-        run: |
           haxelib install format
           haxelib install hxp
-          haxelib install actuate
-          haxelib install svg
+          haxelib install tjson
+          haxelib install hxCodec
 
-      - name: Git dependencies (engine versions)
+      - name: Setup Lime
         run: |
-          haxelib git flixel https://github.com/HaxeFlixel/flixel.git
-          haxelib git flixel-addons https://github.com/HaxeFlixel/flixel-addons.git
-          haxelib git flixel-ui https://github.com/HaxeFlixel/flixel-ui.git
-          haxelib git lime https://github.com/openfl/lime.git
-          haxelib git openfl https://github.com/openfl/openfl.git
+          haxelib run lime setup
+          haxelib run lime rebuild windows
 
-      - name: Optional codecs
-        run: |
-          haxelib install hxCodec || true
-
-      - name: Build Windows (NO REBUILD)
+      - name: Build Windows
         run: |
           haxelib run lime build windows -release
 
-      - name: Upload build artifact
+      - name: Upload build
         uses: actions/upload-artifact@v4
         with:
           name: SXEngine-Windows
