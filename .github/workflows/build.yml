@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Haxe
@@ -20,23 +20,24 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libvlc-dev libvlccore-dev git
+          sudo apt-get install -y git libvlc-dev libvlccore-dev
 
       - name: Setup Haxelib
         run: |
           haxelib setup ~/haxelib
+          haxelib --global update haxelib || true
 
-      - name: Install base libs
+      - name: Install Haxe libraries
         run: |
-          haxelib install lime -S
-          haxelib install openfl -S
-          haxelib install flixel -S
-          haxelib install flixel-addons -S
-          haxelib install flixel-ui -S
-          haxelib install hxcpp -S
-          haxelib install tjson -S
+          haxelib install lime
+          haxelib install openfl
+          haxelib install flixel
+          haxelib install flixel-addons
+          haxelib install flixel-ui
+          haxelib install hxcpp
+          haxelib install tjson
 
-      - name: Install Psych / engine deps
+      - name: Install Git dependencies (Psych Engine core)
         run: |
           haxelib git flixel https://github.com/HaxeFlixel/flixel.git
           haxelib git flixel-addons https://github.com/HaxeFlixel/flixel-addons.git
@@ -44,11 +45,15 @@ jobs:
           haxelib git lime https://github.com/openfl/lime.git
           haxelib git openfl https://github.com/openfl/openfl.git
 
-      - name: Install optional codecs (safe)
+      - name: Optional dependencies
         run: |
           haxelib install hxCodec || true
 
-      - name: Build Windows
+      - name: Rebuild Lime (important)
+        run: |
+          haxelib run lime rebuild windows
+
+      - name: Build Windows (Release)
         run: |
           haxelib run lime build windows -release
 
