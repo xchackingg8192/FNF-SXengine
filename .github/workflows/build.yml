@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup Haxe
@@ -21,18 +21,22 @@ jobs:
         run: |
           haxelib setup ~/haxelib
 
-      - name: Install dependencies
+      - name: Install FULL dependencies (IMPORTANT)
         run: |
           haxelib install lime
-          haxelib install format
           haxelib install openfl
           haxelib install flixel
           haxelib install flixel-addons
           haxelib install flixel-ui
           haxelib install hxcpp
           haxelib install tjson
+          haxelib install format
+          haxelib install hxp
+          haxelib install actuate
+          haxelib install svg
+          haxelib install mcover || true
 
-      - name: Install Git versions (engine deps)
+      - name: Git dependencies (engine core)
         run: |
           haxelib git flixel https://github.com/HaxeFlixel/flixel.git
           haxelib git flixel-addons https://github.com/HaxeFlixel/flixel-addons.git
@@ -40,15 +44,15 @@ jobs:
           haxelib git lime https://github.com/openfl/lime.git
           haxelib git openfl https://github.com/openfl/openfl.git
 
-      - name: Optional dependencies
+      - name: Optional codec support
         run: |
           haxelib install hxCodec || true
 
-      - name: Build Windows (Release)
+      - name: Build Windows
         run: |
           haxelib run lime build windows -release
 
-      - name: Upload build
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: SXEngine-Windows
