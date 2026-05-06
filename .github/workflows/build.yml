@@ -17,17 +17,11 @@ jobs:
         with:
           haxe-version: 4.3.3
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git libvlc-dev libvlccore-dev
-
       - name: Setup Haxelib
         run: |
           haxelib setup ~/haxelib
-          haxelib --global update haxelib || true
 
-      - name: Install Haxe libraries
+      - name: Install dependencies
         run: |
           haxelib install lime
           haxelib install openfl
@@ -37,7 +31,7 @@ jobs:
           haxelib install hxcpp
           haxelib install tjson
 
-      - name: Install Git dependencies (Psych Engine core)
+      - name: Install Git versions (engine deps)
         run: |
           haxelib git flixel https://github.com/HaxeFlixel/flixel.git
           haxelib git flixel-addons https://github.com/HaxeFlixel/flixel-addons.git
@@ -49,15 +43,11 @@ jobs:
         run: |
           haxelib install hxCodec || true
 
-      - name: Rebuild Lime (important)
-        run: |
-          haxelib run lime rebuild windows
-
       - name: Build Windows (Release)
         run: |
           haxelib run lime build windows -release
 
-      - name: Upload build artifact
+      - name: Upload build
         uses: actions/upload-artifact@v4
         with:
           name: SXEngine-Windows
