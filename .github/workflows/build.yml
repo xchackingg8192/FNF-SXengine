@@ -1,55 +1,22 @@
-name: Build SXEngine
+- name: SXEngine
+  run: |
+    haxelib setup ~/haxelib
 
-on:
-  push:
-  workflow_dispatch:
+    # Core Lime/OpenFL
+    haxelib install lime --always
+    haxelib install openfl --always
 
-jobs:
-  build-windows:
-    runs-on: ubuntu-latest
+    # HaxeFlixel base
+    haxelib install flixel --always
+    haxelib install flixel-addons --always
+    haxelib install flixel-ui --always
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    # Build system / required libs
+    haxelib install hxcpp --always
+    haxelib install hxp --always
+    haxelib install format --always
+    haxelib install tjson --always
 
-      - name: Install Haxe
-        uses: krdlab/setup-haxe@v1
-        with:
-          haxe-version: 4.3.3
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libvlc-dev libvlccore-dev
-
-      - name: Setup Haxelib
-        run: |
-          haxelib setup ~/haxelib
-          haxelib install lime
-          haxelib install openfl
-          haxelib install flixel
-          haxelib install flixel-tools
-          haxelib install flixel-addons
-          haxelib install flixel-ui
-          haxelib install format
-          haxelib install hxcpp
-          haxelib install tjson
-          haxelib install hxCodec || true
-
-      - name: Install Psych dependencies
-        run: |
-          haxelib git flixel https://github.com/HaxeFlixel/flixel.git
-          haxelib git flixel-addons https://github.com/HaxeFlixel/flixel-addons.git
-          haxelib git flixel-ui https://github.com/HaxeFlixel/flixel-ui.git
-          haxelib git lime https://github.com/openfl/lime.git
-          haxelib git openfl https://github.com/openfl/openfl.git
-
-      - name: Build game (Windows)
-        run: |
-          haxelib run lime build windows
-
-      - name: Upload build
-        uses: actions/upload-artifact@v4
-        with:
-          name: SXEngine-BUILD
-          path: export/windows/bin
+    # Audio / extras (Psych Engine common)
+    haxelib install hxCodec --always || true
+    haxelib install extension-webm || true
