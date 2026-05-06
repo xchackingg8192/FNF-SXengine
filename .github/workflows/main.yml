@@ -1,57 +1,79 @@
 name: Build SXEngine (Windows)
 
 on:
-  workflow_dispatch:
   push:
+  workflow_dispatch:
 
 jobs:
   build-windows:
-    runs-on: windows-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # 🧠 Haxe
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v1
         with:
           haxe-version: 4.3.3
 
-      - name: Setup Haxelib
+      # 📦 haxelib
+      - name: Setup haxelib
         run: |
-          haxelib setup C:\haxelib
+          mkdir -p ~/haxelib
+          haxelib setup ~/haxelib
+          haxelib fixrepo
 
-      # ⚡ Cache pour accélérer les builds suivants
-      - name: Cache haxelib
-        uses: actions/cache@v4
-        with:
-          path: C:\haxelib
-          key: haxelib-${{ runner.os }}-${{ hashFiles('**/hmm.json') }}
-          restore-keys: |
-            haxelib-${{ runner.os }}
-
-      - name: Install libraries
+      # 🔥 DEPENDANCES SYSTEME (ultra important)
+      - name: Install Linux dependencies
         run: |
-          haxelib install lime
-          haxelib install openfl
-          haxelib install flixel
-          haxelib install flixel-addons
-          haxelib install flixel-ui
-          haxelib install hxcpp
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            gcc-multilib g++-multilib \
+            libx11-dev libxext-dev libxinerama-dev libxrandr-dev \
+            libgl1-mesa-dev \
+            libasound2-dev \
+            libpulse-dev \
+            libopenal-dev \
+            libudev-dev \
+            libvorbis-dev \
+            libflac-dev \
+            libmpg123-dev \
+            libvlc-dev libvlccore-dev \
+            libcurl4-openssl-dev \
+            git
+
+      # 📚 LIBS HAXE (versions FIXES = pas de crash)
+      - name: Install Haxe libraries
+        run: |
+          haxelib install lime 8.0.2
+          haxelib install openfl 9.3.3
+          haxelib install flixel 5.6.1
+          haxelib install flixel-addons 3.2.2
+          haxelib install flixel-ui 2.6.1
+          haxelib install hxcpp 4.3.2
           haxelib install format
           haxelib install hxp
           haxelib install tjson
-          haxelib install hxCodec
 
+      # 🔧 Setup lime (sinon build cassé)
       - name: Setup Lime
         run: |
           haxelib run lime setup
-          haxelib run lime rebuild windows
 
+      # 🔧 Fix hxcpp (très important sur CI)
+      - name: Build hxcpp
+        run: |
+          haxelib run hxcpp build
+
+      # 🚀 BUILD (audio désactivé = évite crash linux)
       - name: Build Windows
         run: |
-          haxelib run lime build windows -release
+          haxelib run lime build windows -release -Dnoaudio
 
+      # 📦 EXPORT
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
